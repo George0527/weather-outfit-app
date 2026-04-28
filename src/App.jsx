@@ -3,15 +3,31 @@ import { Sun, Cloud, CloudRain } from "lucide-react";
 
 const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
-function getOutfit(weather) {
-  if (!weather) return [];
-  const w = weather.toLowerCase();
-
-  if (w.includes("rain")) return ["雨衣", "長褲", "防水鞋"];
-  if (w.includes("cloud")) return ["薄外套", "長袖"];
-  if (w.includes("clear")) return ["T-shirt", "短褲", "太陽眼鏡"];
-  return ["舒適穿搭"];
-}
+// 台灣縣市（中文 → 英文對應）
+const cities = [
+  { zh: "台北市", en: "Taipei" },
+  { zh: "新北市", en: "New Taipei" },
+  { zh: "桃園市", en: "Taoyuan" },
+  { zh: "台中市", en: "Taichung" },
+  { zh: "台南市", en: "Tainan" },
+  { zh: "高雄市", en: "Kaohsiung" },
+  { zh: "基隆市", en: "Keelung" },
+  { zh: "新竹市", en: "Hsinchu" },
+  { zh: "新竹縣", en: "Hsinchu County" },
+  { zh: "苗栗縣", en: "Miaoli" },
+  { zh: "彰化縣", en: "Changhua" },
+  { zh: "南投縣", en: "Nantou" },
+  { zh: "雲林縣", en: "Yunlin" },
+  { zh: "嘉義市", en: "Chiayi" },
+  { zh: "嘉義縣", en: "Chiayi County" },
+  { zh: "屏東縣", en: "Pingtung" },
+  { zh: "宜蘭縣", en: "Yilan" },
+  { zh: "花蓮縣", en: "Hualien" },
+  { zh: "台東縣", en: "Taitung" },
+  { zh: "澎湖縣", en: "Penghu" },
+  { zh: "金門縣", en: "Kinmen" },
+  { zh: "連江縣", en: "Matsu" }
+];
 
 function Icon({ type }) {
   if (type?.includes("Rain")) return <CloudRain />;
@@ -22,37 +38,41 @@ function Icon({ type }) {
 export default function App() {
   const [city, setCity] = useState("Taipei");
   const [weather, setWeather] = useState("");
-  const [outfit, setOutfit] = useState([]);
+  const [temp, setTemp] = useState("");
+  const [humidity, setHumidity] = useState("");
 
   const fetchWeather = async () => {
     const res = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
     );
     const data = await res.json();
-    const main = data.weather[0].main;
-    setWeather(main);
-    setOutfit(getOutfit(main));
+
+    setWeather(data.weather[0].main);
+    setTemp(data.main.temp);
+    setHumidity(data.main.humidity);
   };
 
   return (
     <div className="container">
       <h1>天氣穿搭 App</h1>
 
-      <input value={city} onChange={(e) => setCity(e.target.value)} />
+      {/* 下拉選單 */}
+      <select onChange={(e) => setCity(e.target.value)}>
+        {cities.map((c, i) => (
+          <option key={i} value={c.en}>
+            {c.zh}
+          </option>
+        ))}
+      </select>
+
       <button onClick={fetchWeather}>查詢</button>
 
+      {/* 天氣卡片 */}
       <div className="card">
         <Icon type={weather} />
         <h2>{weather || "--"}</h2>
-      </div>
-
-      <div className="card">
-        <h3>穿搭建議</h3>
-        <ul>
-          {outfit.map((o, i) => (
-            <li key={i}>{o}</li>
-          ))}
-        </ul>
+        <p>🌡 溫度：{temp ? `${temp}°C` : "--"}</p>
+        <p>💧 濕度：{humidity ? `${humidity}%` : "--"}</p>
       </div>
     </div>
   );
